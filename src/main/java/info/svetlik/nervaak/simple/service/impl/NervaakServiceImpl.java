@@ -6,7 +6,6 @@ import org.springframework.util.StopWatch;
 import info.svetlik.nervaak.simple.service.NervaakService;
 import info.svetlik.nervaak.simple.service.configuration.NervaakConfigurationProperties;
 import info.svetlik.nervaak.simple.service.nn.Individual;
-import info.svetlik.nervaak.simple.service.nn.Neuron;
 import info.svetlik.nervaak.simple.service.nn.World;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,16 +37,7 @@ public class NervaakServiceImpl implements NervaakService {
 	}
 
 	private Individual createIndividual(World world) {
-		final var initialNeuronCount = configurationProperties.initialLayersCount() * configurationProperties.initialNeuronsPerLayerCount();
-		final var individual = new Individual(world, initialNeuronCount, configurationProperties.initialConnectionLimit());
-
-		final var iterator = individual.neurons().listIterator();
-		while (iterator.hasNext()) {
-			iterator.next();
-			iterator.set(new Neuron(individual));
-		}
-
-		return individual;
+		return new Individual(world, configurationProperties.individual());
 	}
 
 }

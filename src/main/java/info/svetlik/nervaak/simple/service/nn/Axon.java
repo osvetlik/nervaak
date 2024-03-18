@@ -1,18 +1,18 @@
 package info.svetlik.nervaak.simple.service.nn;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-import org.apache.commons.collections4.list.FixedSizeList;
-
-public record Axon(List<Dendrite> dendrites) implements Neuron.Output {
-
-	public Axon(List<Dendrite> dendrites) {
-		this.dendrites = FixedSizeList.fixedSizeList(dendrites);
-	}
+public record Axon(List<Sink> sinks) implements Sink {
 
 	public Axon(int connectionsLimit) {
-		this(new ArrayList<>(connectionsLimit));
+		this(Arrays.asList(new Sink[connectionsLimit]));
+	}
+
+	@Override
+	public void sink(double value) {
+		sinks.stream().filter(Objects::nonNull).forEach(sink -> sink.sink(value));
 	}
 
 }

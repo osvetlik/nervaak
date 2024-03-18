@@ -21,4 +21,5 @@ public class NervaakApplication implements CommandLineRunner {
 	public static void main(String[] args) {
 		SpringApplication.run(NervaakApplication.class, args);
 	}
+
 }

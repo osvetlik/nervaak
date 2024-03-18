@@ -3,18 +3,21 @@ package info.svetlik.nervaak.simple.service.nn;
 import java.util.Arrays;
 import java.util.List;
 
-public record Neuron(Individual individual, List<Input> inputs, Output output) {
+import lombok.Data;
 
-	public Neuron(Individual individual) {
-		this(individual, Arrays.asList(new Input[individual.connectionsLimit()]), new Axon(individual.connectionsLimit()));
+public record Neuron(List<Source> inputs, Sink output, State state) {
+
+	public Neuron(int connectionsLimit) {
+		this(Arrays.asList(new Source[connectionsLimit]), new Axon(connectionsLimit), new State());
 	}
 
-	public static interface Input {
-
+	public Neuron(int connectionsLimit, Source input) {
+		this(Arrays.asList(input), new Axon(connectionsLimit), new State());
 	}
 
-	public static interface Output {
-
+	@Data
+	public static class State {
+		private double bias;
 	}
 
 }
