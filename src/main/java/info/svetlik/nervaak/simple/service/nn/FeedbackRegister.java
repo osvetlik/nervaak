@@ -1,22 +1,16 @@
 package info.svetlik.nervaak.simple.service.nn;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class FeedbackRegister implements Source, Sink {
+@EqualsAndHashCode(callSuper = true)
+public class FeedbackRegister extends ThroughputPipeImpl {
 
 	private final int id;
 
-	@Override
-	public void sink(double value) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public double read() {
-		// TODO Auto-generated method stub
-		return 0;
+	public FeedbackRegister(int id) {
+		this.id = id;
 	}
 
 }

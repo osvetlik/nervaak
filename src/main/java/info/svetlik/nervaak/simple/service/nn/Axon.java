@@ -1,18 +1,12 @@
 package info.svetlik.nervaak.simple.service.nn;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-public record Axon(List<Sink> sinks) implements Sink {
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class Axon extends ThroughputPipeImpl {
 
-	public Axon(int connectionsLimit) {
-		this(Arrays.asList(new Sink[connectionsLimit]));
-	}
-
-	@Override
-	public void sink(double value) {
-		sinks.stream().filter(Objects::nonNull).forEach(sink -> sink.sink(value));
-	}
+//	private final int connectionsLimit;
 
 }
