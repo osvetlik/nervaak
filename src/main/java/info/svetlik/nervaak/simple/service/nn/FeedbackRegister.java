@@ -7,10 +7,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class FeedbackRegister extends ThroughputPipeImpl {
 
-	private final int id;
-
-	public FeedbackRegister(int id) {
-		this.id = id;
+	public FeedbackRegister(Neuron neuron) {
+		neuron.getOutput().addSink(this);
 	}
 
 }

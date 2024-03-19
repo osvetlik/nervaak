@@ -1,5 +1,6 @@
 package info.svetlik.nervaak.simple.configuration;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
@@ -19,9 +20,14 @@ public class CommonBeansConfiguration {
 		return new StopWatch(COMMON_STOPWATCH_ID);
 	}
 
+	@Bean
+	public ExecutorService executorService() {
+		return Executors.newVirtualThreadPerTaskExecutor();
+	}
+
 	@Bean(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME)
-	public AsyncTaskExecutor asyncTaskExecutor() {
-	  return new TaskExecutorAdapter(Executors.newVirtualThreadPerTaskExecutor());
+	public AsyncTaskExecutor asyncTaskExecutor(ExecutorService executorService) {
+	  return new TaskExecutorAdapter(executorService);
 	}
 
 }

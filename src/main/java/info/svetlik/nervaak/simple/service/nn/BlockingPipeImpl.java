@@ -24,7 +24,12 @@ public class BlockingPipeImpl<T> implements BlockingPipe {
 
 	@Override
 	public double read() {
-		return queue.peek();
+		try {
+			return queue.take();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new NervaakRuntimeException(e);
+		}
 	}
 
 	@Override

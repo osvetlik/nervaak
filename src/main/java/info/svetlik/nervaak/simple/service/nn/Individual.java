@@ -19,7 +19,8 @@ public class Individual {
 	private final World world;
 	private final State state = new State();
 	private final List<ThroughputPipe> inputs = new ArrayList<>();
-	private final List<FeedbackRegister> outputs = new ArrayList<>();
+	private final List<ThroughputPipe> realInputs = new ArrayList<>();
+	private final List<Neuron> outputs = new ArrayList<>();
 	private final List<FeedbackRegister> feedbacks = new ArrayList<>();
 	private final SortedMap<Integer, List<Neuron>> layers = new TreeMap<>();
 	private final List<Neuron> allNeurons = new ArrayList<>();
@@ -40,19 +41,23 @@ public class Individual {
 
 	private void populate(Context context) {
 		inputs.addAll(populateInputs(context.numberOfInputs()));
-		feedbacks.addAll(populateFeedback(context.numberOfOutputs()));
+		realInputs.addAll(inputs);
+		outputs.addAll(populateOutputs(context));
+		feedbacks.addAll(populateFeedback(outputs));
 		inputs.addAll(feedbacks);
-		outputs.addAll(feedbacks);
 		layers.putAll(populateHiddenLayers(context));
 
 		Stream.concat(inputs.stream(), feedbacks.stream())
 				.forEach(source -> source.addSinks(addNeuronLayerSinks(layers.get(0))));
 
-		for (int i = 0; i < context.numberOfLayers() - 1; i++) {
-			final var layer1 = layers.get(i);
-			final var layer2 = layers.get(i + 1);
-			layer1.stream().forEach(neuron -> neuron.getOutput().addSinks(addNeuronLayerSinks(layer2)));
-		}
+		final var lastLayer = layers.values().stream().reduce(this::connectLayers).orElseThrow();
+
+		connectLayers(lastLayer, outputs);
+	}
+
+	private List<Neuron> connectLayers(List<Neuron> layer1, List<Neuron> layer2) {
+		layer1.stream().forEach(neuron -> neuron.getOutput().addSinks(addNeuronLayerSinks(layer2)));
+		return layer2;
 	}
 
 	private Collection<Sink> addNeuronLayerSinks(Collection<Neuron> neurons) {
@@ -78,9 +83,15 @@ public class Individual {
 				.toList();
 	}
 
-	private List<FeedbackRegister> populateFeedback(int numberOfOutputs) {
-		return IntStream.range(0, numberOfOutputs)
-				.mapToObj(FeedbackRegister::new)
+	private List<Neuron> populateOutputs(Context context) {
+		return IntStream.range(0, context.numberOfOutputs())
+				.mapToObj(i -> createNeuron(context))
+				.toList();
+	}
+
+	private List<FeedbackRegister> populateFeedback(List<Neuron> outputs) {
+		return outputs.stream()
+				.map(FeedbackRegister::new)
 				.toList();
 	}
 

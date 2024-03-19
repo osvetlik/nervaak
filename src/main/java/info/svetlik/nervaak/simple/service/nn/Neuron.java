@@ -9,7 +9,7 @@ import lombok.Data;
 public class Neuron {
 	private final List<Source> inputs = new ArrayList<>();
 	private final ThroughputPipe output = new Axon();
-	State state;
+	private final State state = new State();
 
 	@Data
 	public static class State {
@@ -20,6 +20,11 @@ public class Neuron {
 		final var sink = new Dendrite();
 		this.inputs.add(sink);
 		return sink;
+	}
+
+	public void process() {
+		final var outputValue = this.inputs.stream().mapToDouble(Source::read).sum();
+		output.sink(outputValue);
 	}
 
 }
