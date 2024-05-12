@@ -22,6 +22,7 @@
 		<maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
 		<maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
 		<commons-rng.version>1.5</commons-rng.version>
+		<junit-pioneer.version>2.2.0</junit-pioneer.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -55,6 +56,12 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit-pioneer</groupId>
+			<artifactId>junit-pioneer</artifactId>
+			<version>${junit-pioneer.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

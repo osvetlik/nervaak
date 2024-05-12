@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.apache.commons.collections4.list.FixedSizeList;
 
-public record World(int size, List<Individual> individuals, State state) {
+public record World(int size, List<Network> individuals, State state) {
 
-	public World(int size, List<Individual> individuals, State state) {
+	public World(int size, List<Network> individuals, State state) {
 		if (size != individuals.size()) {
 			throw new IllegalStateException();
 		}
@@ -17,7 +17,7 @@ public record World(int size, List<Individual> individuals, State state) {
 	}
 
 	public World(int worldSize) {
-		this(worldSize, Arrays.asList(new Individual[worldSize]), new State());
+		this(worldSize, Arrays.asList(new Network[worldSize]), new State());
 	}
 
 	public static class State {

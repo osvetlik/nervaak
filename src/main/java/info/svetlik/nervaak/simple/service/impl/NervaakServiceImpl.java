@@ -1,76 +1,54 @@
 package info.svetlik.nervaak.simple.service.impl;
 
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.function.Function;
-
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import info.svetlik.nervaak.simple.exception.NervaakRuntimeException;
 import info.svetlik.nervaak.simple.service.NervaakService;
 import info.svetlik.nervaak.simple.service.configuration.NervaakConfigurationProperties;
-import info.svetlik.nervaak.simple.service.nn.Individual;
-import info.svetlik.nervaak.simple.service.nn.ThroughputPipe;
+import info.svetlik.nervaak.simple.service.nn.Network;
+import info.svetlik.nervaak.simple.service.nn.SpikeType;
+import info.svetlik.nervaak.simple.service.nn.StatisticsCollector;
 import info.svetlik.nervaak.simple.service.nn.World;
+import info.svetlik.nervaak.simple.service.nn.util.LockingService;
+import info.svetlik.nervaak.simple.service.time.ClockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class NervaakServiceImpl implements NervaakService {
+public class NervaakServiceImpl implements NervaakService, ApplicationContextAware {
 
 	private final NervaakConfigurationProperties configurationProperties;
 	private final StopWatch sw;
-	private final ExecutorService executorService;
+	private final ClockService clockService;
+	private final LockingService lockingService;
 
 	@Override
-	public void runSimulation() {
+	public void runSimulation() throws InterruptedException {
 		sw.start("World population");
 		final var world = populateWorld();
 		sw.stop();
 
-		sw.start("Iteration");
-		iteration(world, this::allIndividualInputs);
-		sw.stop();
-
-		sw.start("More iterations");
-		for (int i = 0; i < 1000; i++) {
-			iteration(world, this::realIndividualInputs);
-		}
+		log.info("Start simulation: {} neurons, {} connections",
+				world.individuals().get(0).getAllNeurons().size(),
+				StatisticsCollector.getConnections());
+		sw.start("Simulation");
+		simulation(world);
+		Thread.currentThread().join();
 		sw.stop();
 
 		log.info("Statistics:\n{}", sw.prettyPrint());
 	}
 
-	private List<ThroughputPipe> allIndividualInputs(Individual individual) {
-		return individual.getInputs();
-	}
-
-	private List<ThroughputPipe> realIndividualInputs(Individual individual) {
-		return individual.getRealInputs();
-	}
-
-	private void iteration(final World world, Function<Individual, List<ThroughputPipe>> inputSupplier) {
-		final var futures = world.individuals().stream().flatMap(i -> i.getAllNeurons().stream()).map(n -> executorService.submit(n::process)).toList();
-		log.info("Started {} processes", futures.size());
-		executorService.submit(() -> world.individuals().stream().flatMap(i -> inputSupplier.apply(i).stream()).forEach(i -> i.sink(0.0)));
-		futures.forEach(this::join);
-		log.info("Futures joined");
-	}
-
-	private void join(Future<?> future) {
-		try {
-			future.get();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new NervaakRuntimeException(e);
-		} catch (ExecutionException e) {
-			throw new NervaakRuntimeException(e);
-		}
+	private void simulation(final World world) {
+		final var neuron = world.individuals().get(0).getAllNeurons().get(1);
+		neuron.spike(SpikeType.EXCITATORY);
+		neuron.spike(SpikeType.EXCITATORY);
 	}
 
 	private World populateWorld() {
@@ -83,8 +61,14 @@ public class NervaakServiceImpl implements NervaakService {
 		return world;
 	}
 
-	private Individual createIndividual(World world) {
-		return new Individual(world, configurationProperties.individual());
+	private Network createIndividual(World world) {
+		return new Network(world, configurationProperties.individual(), clockService, lockingService);
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		final var context = (ConfigurableApplicationContext) applicationContext;
+		context.registerShutdownHook();
 	}
 
 }

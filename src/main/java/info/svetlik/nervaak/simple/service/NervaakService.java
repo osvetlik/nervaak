@@ -18,6 +18,6 @@ package info.svetlik.nervaak.simple.service;
 
 public interface NervaakService {
 
-	void runSimulation();
+	void runSimulation() throws InterruptedException;
 
 }

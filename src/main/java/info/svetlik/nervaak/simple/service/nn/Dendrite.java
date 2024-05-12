@@ -1,24 +1,26 @@
 package info.svetlik.nervaak.simple.service.nn;
 
+import info.svetlik.nervaak.simple.service.nn.util.LockingService;
+import info.svetlik.nervaak.simple.service.time.ClockService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class Dendrite extends BlockingPipeImpl<Dendrite.State> {
+public class Dendrite extends NetworkComponent implements SpikeReceiver {
 
-	public Dendrite() {
-		super(new State());
-	}
+	private final DecayingProperty weight;
+	private final SpikeReceiver neuron;
 
-	@Data
-	public static class State {
-		private float weight;
+	public Dendrite(ClockService clockService, LockingService lockingService, double weight, SpikeReceiver neuron) {
+		super(clockService, lockingService);
+		this.weight = new DecayingProperty(weight, 5.0, 10.0, clockService, lockingService);
+		this.neuron = neuron;
 	}
 
 	@Override
-	public double read() {
-		return getState().weight * super.read();
+	public void spike(SpikeType spikeType, double weight) {
+		neuron.spike(spikeType, this.weight.getValue());
 	}
 
 }
